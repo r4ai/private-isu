@@ -203,6 +203,8 @@ docker run --network host --add-host host.docker.internal:host-gateway -i privat
        valid_lft forever preferred_lft forever
 ```
 
+**WSL2の場合:** `docker0`インタフェースが存在しないことがありますが、`--add-host host.docker.internal:host-gateway`オプションを付けることで`host.docker.internal`が利用できます（Linuxの手順のコマンドで動作します）。
+
 ### cloud-init を利用して環境を構築する
 
 matsuu氏が提供する[`cloud-init`に対応したISUCON過去問題環境構築用のcloud-config集](https://github.com/matsuu/cloud-init-isucon/)を利用して、競技者用およびベンチマーカーインスタンスを構築できます。
