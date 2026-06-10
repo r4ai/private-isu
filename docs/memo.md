@@ -54,10 +54,10 @@ docker compose up -d --build
 ## ベンチ
 
 ```sh
-cd benchmarker
-docker build -t private-isu-benchmarker .
-docker run --network host --add-host host.docker.internal:host-gateway -i private-isu-benchmarker /bin/benchmarker -t http://host.docker.internal -u /opt/userdata
+./docs/bench_log.sh
 ```
+
+結果は `docs/bench_results.csv` に追記される。
 
 ## 初期データがないとき
 
