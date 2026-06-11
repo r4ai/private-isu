@@ -16,3 +16,4 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR/webapp"
 docker compose down -v
 docker compose up -d --build
+"$ROOT_DIR/scripts/apply_migrations.sh"
