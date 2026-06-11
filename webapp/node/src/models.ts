@@ -16,20 +16,67 @@ import {
 } from './types.js'
 
 export async function tryLogin(accountName: string, password: string): Promise<User | undefined> {
-  const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE account_name = ? AND del_flg = 0', [accountName])
-  const user = rows[0] as User
+  const user = await getUserByAccountName(accountName, true)
   if (!user) return undefined
   const passhash = calculatePasshash(accountName, password)
   if (passhash === user.passhash) return user
   return undefined
 }
 
+const usersById = new Map<number, User>()
+const usersByAccountName = new Map<string, User>()
+
+function cacheUser(user: User): User {
+  usersById.set(user.id, user)
+  usersByAccountName.set(user.account_name, user)
+  return user
+}
+
+export function clearUserCache(): void {
+  usersById.clear()
+  usersByAccountName.clear()
+}
+
 export async function getUser(userId: number) {
+  const cached = usersById.get(userId)
+  if (cached) return cached
   const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `id` = ?', [userId])
-  return rows[0] as User
+  const user = rows[0] as User | undefined
+  return user ? cacheUser(user) : undefined
+}
+
+export async function getUsersByIds(userIds: number[]): Promise<Map<number, User>> {
+  const users = new Map<number, User>()
+  const missingIds: number[] = []
+  for (const userId of new Set(userIds)) {
+    const cached = usersById.get(userId)
+    if (cached) {
+      users.set(userId, cached)
+    } else {
+      missingIds.push(userId)
+    }
+  }
+  if (missingIds.length > 0) {
+    const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `id` IN (?)', [missingIds])
+    for (const user of rows as User[]) {
+      users.set(user.id, cacheUser(user))
+    }
+  }
+  return users
+}
+
+export async function getUserByAccountName(accountName: string, activeOnly = false): Promise<User | undefined> {
+  const cached = usersByAccountName.get(accountName)
+  if (cached) return !activeOnly || cached.del_flg === 0 ? cached : undefined
+  const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `account_name` = ?', [accountName])
+  const user = rows[0] as User | undefined
+  if (!user) return undefined
+  cacheUser(user)
+  return !activeOnly || user.del_flg === 0 ? user : undefined
 }
 
 export async function dbInitialize(): Promise<void> {
+  clearUserCache()
   const sqls = [
     'DELETE FROM users WHERE id > 1000',
     'DELETE FROM posts WHERE id > 10000',
@@ -84,8 +131,7 @@ export async function render(c: AppContext, view: string, params: RenderParams):
 export async function getSessionUser(c: AppContext): Promise<User | undefined> {
   const session = c.get('session') as SessionData
   if (!session.userId) return undefined
-  const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `id` = ?', [session.userId])
-  const user = rows[0] as User
-  if (user) user.csrfToken = session.csrfToken
-  return user
+  const user = await getUser(session.userId)
+  if (!user) return undefined
+  return { ...user, csrfToken: session.csrfToken }
 }

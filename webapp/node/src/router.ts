@@ -4,7 +4,7 @@ import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { type RowDataPacket, type ResultSetHeader } from 'mysql2/promise'
 import { db } from './db.js'
 import { destroySession } from './session.js'
-import { dbInitialize, getSessionUser, render, tryLogin } from './models.js'
+import { clearUserCache, dbInitialize, getSessionUser, getUserByAccountName, getUsersByIds, render, tryLogin } from './models.js'
 import { calculatePasshash, ensureFile, ensureString, ensureStringArray, imageUrl, validateUser } from './utils.js'
 import { type AppContext, type Comment, type CountRow, type ParsedBody, type Post, POSTS_PER_PAGE, type SessionData, type User, type Variables, UPLOAD_LIMIT } from './types.js'
 
@@ -26,10 +26,16 @@ async function hydratePosts(posts: Post[], options: { allComments?: boolean } = 
     commentCounts.set(row.post_id, row.count)
   }
 
-  const [commentRows] = await db.query<RowDataPacket[]>(
-    'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `post_id`, `created_at` DESC',
-    [postIds]
-  )
+  const commentQuery = options.allComments
+    ? 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `post_id`, `created_at` DESC'
+    : `SELECT id, post_id, user_id, comment, created_at FROM (
+        SELECT c.*, ROW_NUMBER() OVER (PARTITION BY c.post_id ORDER BY c.created_at DESC) AS rn
+        FROM comments c
+        WHERE c.post_id IN (?)
+      ) recent_comments
+      WHERE rn <= 3
+      ORDER BY post_id, created_at DESC`
+  const [commentRows] = await db.query<RowDataPacket[]>(commentQuery, [postIds])
   const commentsByPostId = new Map<number, Comment[]>()
   const userIds = new Set(posts.map((post) => post.user_id))
   for (const comment of commentRows as Comment[]) {
@@ -42,11 +48,7 @@ async function hydratePosts(posts: Post[], options: { allComments?: boolean } = 
     commentsByPostId.set(comment.post_id, comments)
   }
 
-  const [userRows] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `id` IN (?)', [[...userIds]])
-  const users = new Map<number, User>()
-  for (const user of userRows as User[]) {
-    users.set(user.id, user)
-  }
+  const users = await getUsersByIds([...userIds])
 
   const built: Post[] = []
   for (const post of posts) {
@@ -161,8 +163,8 @@ router.post('/register', async (c: AppContext) => {
   }
   const passhash = calculatePasshash(accountName, password)
   await db.query('INSERT INTO `users` (`account_name`, `passhash`) VALUES (?, ?)', [accountName, passhash])
-  const [meRow] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `account_name` = ?', [accountName])
-  const newUser = meRow[0] as User
+  const newUser = await getUserByAccountName(accountName)
+  if (!newUser) return c.text('ERROR', 500)
   session.userId = newUser.id
   session.csrfToken = crypto.randomBytes(16).toString('hex')
   return c.redirect('/')
@@ -192,8 +194,7 @@ router.get('/', async (c: AppContext) => {
 router.get('/:accountName{@[A-Za-z0-9_]+}', async (c: AppContext) => {
   try {
     const accountName = c.req.param('accountName')!.slice(1)
-    const [urows] = await db.query<RowDataPacket[]>('SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = 0', [accountName])
-    const user = urows[0] as User
+    const user = await getUserByAccountName(accountName, true)
     if (!user) return c.text('not_found', 404)
     const [postRowData] = await db.query<RowDataPacket[]>(
       'SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` WHERE `user_id` = ? ORDER BY `created_at` DESC LIMIT ?',
@@ -340,5 +341,6 @@ router.post('/admin/banned', async (c: AppContext) => {
   const query = 'UPDATE `users` SET `del_flg` = ? WHERE `id` = ?'
   const ids = ensureStringArray(body.uid)
   await Promise.all(ids.map((id) => db.query<ResultSetHeader>(query, [1, id])))
+  clearUserCache()
   return c.redirect('/admin/banned')
 })

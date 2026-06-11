@@ -1,26 +1,12 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { spawnSync } from 'child_process'
+import crypto from 'crypto'
 import type { Post, ParsedBodyValue } from './types.js'
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export function shellEscape(arg: string): string {
-  if (arg === '') return "''"
-  return `'${arg.replace(/'/g, `'\\''`)}'`
-}
-
 export function digest(src: string): string {
-  const command = `printf "%s" ${shellEscape(src)} | openssl dgst -sha512 | sed 's/^.*= //'`
-  const result = spawnSync('/bin/sh', ['-c', command], {
-    encoding: 'utf8'
-  })
-  if (result.error) throw result.error
-  if (result.status !== 0) {
-    const message = (result.stderr || '').toString().trim()
-    throw new Error(`openssl failed: ${message}`)
-  }
-  return result.stdout.replace(/^.*= /, '').trim()
+  return crypto.createHash('sha512').update(src).digest('hex')
 }
 
 export function validateUser(accountName: string, password: string): boolean {
