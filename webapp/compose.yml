@@ -27,6 +27,7 @@ services:
       ISUCONP_DB_PASSWORD: root
       ISUCONP_DB_NAME: isuconp
       ISUCONP_MEMCACHED_ADDRESS: memcached:11211
+      ISUCONP_ACCESS_LOG: ${ISUCONP_ACCESS_LOG:-}
     networks:
       - my_network
     volumes:

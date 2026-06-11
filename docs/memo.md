@@ -81,13 +81,19 @@ DB計測のリセット：
 ./scripts/bench_log.sh
 ```
 
+ベンチ実行中の endpoint 別アクセス集計：
+
+```sh
+./scripts/bench_access_log.sh
+```
+
 DB計測：
 
 ```sh
 ./scripts/mysql_digest.sh
 ```
 
-結果は `docs/bench_results.csv` に追記される。
+ベンチ結果は `docs/bench_results.csv` に追記される。endpoint 別集計は `docs/bench_access_summary.csv` に出力される。
 
 ## 初期データがないとき
 

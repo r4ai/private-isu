@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `webapp/` hosts language ports (`golang/`, `ruby/`, `php/`, `python/`, `node/`); focus changes on one port and mirror fixes only when needed.
+- `webapp/` hosts language ports (`golang/`, `ruby/`, `php/`, `python/`, `node/`); this repository currently targets the Node implementation unless a task explicitly says otherwise.
 - `webapp/sql/` holds schema and fixtures consumed by `make init`; version migrations and data patches here.
 - `benchmarker/` contains the Go load tester, while `provisioning/` tracks Ansible roles for operational parity.
 
@@ -21,6 +21,7 @@
 ## Testing Guidelines
 - Supplement changes with language-native unit tests when touching core logic (`go test ./...`, `pytest`, `bundle exec rspec`, `npm test`) even if suites are sparse.
 - Benchmark every performance tweak and note the score delta in your PR description.
+- For Node endpoint timing during benchmark runs, prefer `./scripts/bench_access_log.sh`; it enables `ISUCONP_ACCESS_LOG=1`, runs the benchmarker, and writes endpoint summaries to `docs/bench_access_summary.csv`.
 - For schema updates, load `webapp/sql/dump.sql` into local MySQL and smoke-test login plus timeline flows.
 
 ## Commit & Pull Request Guidelines
