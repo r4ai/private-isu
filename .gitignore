@@ -1,5 +1,6 @@
 vendor/
 docs/bench_access.log
+webapp/public/image/
 portal/log
 portal/tmp
 

@@ -1,0 +1,21 @@
+DIGEST_TEXT	COUNT_STAR	total_sec	avg_sec	SUM_ROWS_SENT	SUM_ROWS_EXAMINED
+SELECT `p` . `id` , `p` . `user_id` , `p` . `body` , `p` . `created_at` , `p` . `mime` FROM `posts` `p` INNER JOIN `users` `u` ON `u` . `id` = `p` . `user_id` AND `u` . `del_flg` = ? ORDER BY `p` . `created_at` DESC LIMIT ?	1932	33.688	0.0174	38640	21164297
+SELECT * FROM `posts` WHERE `id` = ?	17121	8.887	0.0005	17121	17121
+SELECT `p` . `id` , `p` . `user_id` , `p` . `body` , `p` . `mime` , `p` . `created_at` FROM `posts` `p` INNER JOIN `users` `u` ON `u` . `id` = `p` . `user_id` AND `u` . `del_flg` = ? WHERE `p` . `created_at` <= ? ORDER BY `p` . `created_at` DESC LIMIT ?	242	4.432	0.0183	4840	2615041
+INSERT INTO `posts` ( `user_id` , `mime` , `imgdata` , `body` ) VALUES (...)	237	3.436	0.0145	0	0
+INSERT INTO `users` ( `account_name` , `passhash` ) VALUES (...)	368	1.981	0.0054	0	0
+INSERT INTO `comments` ( `post_id` , `user_id` , `comment` ) VALUES (...)	318	1.937	0.0061	0	0
+SELECT * FROM `comments` WHERE `post_id` IN (...) ORDER BY `post_id` , `created_at` DESC	4339	1.451	0.0003	147413	147413
+SELECT `post_id` , COUNT ( * ) AS `count` FROM `comments` WHERE `post_id` IN (...) GROUP BY `post_id`	4339	1.175	0.0003	15242	147409
+SELECT * FROM `users` WHERE `id` = ?	3651	0.630	0.0002	3651	3651
+DELETE FROM `posts` WHERE `id` > ?	3	0.527	0.1758	0	172
+SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = ?	1873	0.375	0.0002	1784	1784
+SELECT * FROM `users` WHERE `id` IN (...)	4339	0.239	0.0001	98532	98532
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `user_id` = ?	444	0.119	0.0003	444	44594
+SELECT COUNT ( * ) AS `count` FROM `comments` `c` INNER JOIN `posts` `p` ON `p` . `id` = `c` . `post_id` WHERE `p` . `user_id` = ?	444	0.116	0.0003	444	46844
+SELECT `id` , `user_id` , `body` , `mime` , `created_at` FROM `posts` WHERE `user_id` = ? ORDER BY `created_at` DESC LIMIT ?	444	0.110	0.0002	4316	4316
+SELECT COUNT ( * ) AS `count` FROM `posts` WHERE `user_id` = ?	444	0.089	0.0002	444	4316
+SELECT * FROM `users` WHERE `account_name` = ?	368	0.069	0.0002	368	368
+SELECT ? FROM `users` WHERE `account_name` = ?	368	0.063	0.0002	0	0
+DELETE FROM `comments` WHERE `id` > ?	3	0.031	0.0103	0	225
+DELETE FROM `users` WHERE `id` > ?	3	0.030	0.0099	0	241

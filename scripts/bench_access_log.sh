@@ -11,6 +11,7 @@ mkdir -p "$ROOT_DIR/docs"
 
 cd "$ROOT_DIR/webapp"
 ISUCONP_ACCESS_LOG=1 docker compose up -d --build app nginx
+docker compose exec -T nginx nginx -s reload
 
 cd "$ROOT_DIR/benchmarker"
 docker build -q -t "$IMAGE_NAME" . >/dev/null
