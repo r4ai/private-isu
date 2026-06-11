@@ -54,7 +54,7 @@ docker compose up -d --build
 ## ベンチ
 
 ```sh
-./docs/bench_log.sh
+./scripts/bench_log.sh
 ```
 
 結果は `docs/bench_results.csv` に追記される。

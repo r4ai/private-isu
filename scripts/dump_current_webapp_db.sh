@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_PATH="${OUT_PATH:-"$ROOT_DIR/webapp/sql/dump.sql.bz2"}"
 
 cd "$ROOT_DIR/webapp"

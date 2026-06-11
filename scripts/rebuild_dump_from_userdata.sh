@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MYSQL_CLIENT_BIN="/home/linuxbrew/.linuxbrew/opt/mysql-client/bin"
 
 cd "$ROOT_DIR/benchmarker/userdata"
@@ -12,8 +12,8 @@ Ruby gem mysql2 is required to run benchmarker/userdata/load.rb.
 
 Install mysql2 for the host Ruby, or use the Docker Compose DB route:
 
-  ./docs/scripts/apply_comments_index.sh
-  ./docs/scripts/dump_current_webapp_db.sh
+  ./scripts/apply_comments_index.sh
+  ./scripts/dump_current_webapp_db.sh
 MSG
   exit 1
 fi
