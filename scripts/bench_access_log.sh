@@ -33,7 +33,7 @@ printf '%s\n' "$RESULT_JSON"
 
 cd "$ROOT_DIR/webapp"
 SUMMARY_JSON="$(
-  docker compose exec -T app node -e \
+  docker compose exec -T app env NODE_OPTIONS= node -e \
     "fetch('http://127.0.0.1:8080/__access_summary').then((r) => r.text()).then((t) => process.stdout.write(t))"
 )"
 

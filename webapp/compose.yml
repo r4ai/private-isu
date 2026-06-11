@@ -28,6 +28,7 @@ services:
       ISUCONP_DB_NAME: isuconp
       ISUCONP_MEMCACHED_ADDRESS: memcached:11211
       ISUCONP_ACCESS_LOG: ${ISUCONP_ACCESS_LOG:-}
+      ISUCONP_NODE_PROFILE_PATH: ${ISUCONP_NODE_PROFILE_PATH:-}
       NODE_OPTIONS: ${NODE_OPTIONS:-}
     networks:
       - my_network

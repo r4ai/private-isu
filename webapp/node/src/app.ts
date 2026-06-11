@@ -1,11 +1,50 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { writeFile } from 'fs/promises'
+import inspector from 'inspector'
 import type { Variables } from './types.js'
 import { sessionMiddleware } from './session.js'
 import { router } from './router.js'
 
 const app = new Hono<{ Variables: Variables }>()
+
+function startCpuProfiler(): void {
+  const profilePath = process.env.ISUCONP_NODE_PROFILE_PATH
+  if (!profilePath) return
+
+  const session = new inspector.Session()
+  session.connect()
+  session.post('Profiler.enable')
+  session.post('Profiler.start')
+
+  let stopping = false
+  const stop = () => {
+    if (stopping) return
+    stopping = true
+    session.post('Profiler.stop', (err, params) => {
+      if (err) {
+        console.error(err)
+        process.exit(1)
+      }
+      writeFile(profilePath, JSON.stringify(params.profile))
+        .catch((e) => {
+          console.error(e)
+          process.exitCode = 1
+        })
+        .finally(() => {
+          session.disconnect()
+          process.exit()
+        })
+    })
+  }
+
+  process.once('SIGUSR2', stop)
+  process.once('SIGINT', stop)
+  process.once('SIGTERM', stop)
+}
+
+startCpuProfiler()
 
 type AccessStats = {
   count: number

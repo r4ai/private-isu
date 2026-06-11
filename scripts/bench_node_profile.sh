@@ -9,18 +9,23 @@ mkdir -p "$PROFILE_DIR"
 rm -f "$PROFILE_DIR"/*.cpuprofile "$SUMMARY_PATH"
 
 set +e
-NODE_OPTIONS="--cpu-prof --cpu-prof-dir=/tmp" \
+ISUCONP_NODE_PROFILE_PATH=/tmp/isuconp-node.cpuprofile \
 RESTORE_ACCESS_LOG=0 \
   "$ROOT_DIR/scripts/bench_access_log.sh"
 BENCH_STATUS=$?
 set -e
 
 cd "$ROOT_DIR/webapp"
-docker compose stop app >/dev/null
+docker compose exec -T app sh -c 'kill -USR2 1' >/dev/null || true
+for _ in $(seq 1 20); do
+  state="$(docker compose ps app --format json | node -e "let data=''; process.stdin.on('data', c => data += c); process.stdin.on('end', () => { const row = data.trim() ? JSON.parse(data) : {}; console.log(row.State || '') })")"
+  [ "$state" = "exited" ] && break
+  sleep 1
+done
 docker compose cp app:/tmp/. "$PROFILE_DIR" >/dev/null
-NODE_OPTIONS= ISUCONP_ACCESS_LOG= docker compose up -d --force-recreate app >/dev/null
+ISUCONP_NODE_PROFILE_PATH= ISUCONP_ACCESS_LOG= docker compose up -d --force-recreate app >/dev/null
 
-PROFILE_FILE="$(find "$PROFILE_DIR" -maxdepth 1 -name '*.cpuprofile' -type f -printf '%T@ %p\n' | sort -nr | awk 'NR == 1 { print $2 }')"
+PROFILE_FILE="$(find "$PROFILE_DIR" -maxdepth 1 -name '*.cpuprofile' -type f -printf '%s %p\n' | sort -nr | awk 'NR == 1 { print $2 }')"
 if [ -z "$PROFILE_FILE" ]; then
   echo "node profile was not generated" >&2
   exit 1
