@@ -12,6 +12,7 @@ export const router = new Hono<{ Variables: Variables }>()
 
 type CommentCountRow = CountRow & { post_id: number }
 const IMAGE_CACHE_DIR = '/home/public/image'
+const IMAGE_PREWARM_LIMIT = Number(process.env.ISUCONP_IMAGE_PREWARM_LIMIT) || 3000
 
 async function hydratePosts(posts: Post[], options: { allComments?: boolean } = {}): Promise<Post[]> {
   if (posts.length === 0) return []
@@ -101,10 +102,29 @@ async function clearImageCache(): Promise<void> {
   }
 }
 
+async function warmImageCache(): Promise<void> {
+  if (IMAGE_PREWARM_LIMIT <= 0) return
+  const [rows] = await db.query<RowDataPacket[]>(
+    'SELECT `id`, `mime`, `imgdata` FROM `posts` ORDER BY `created_at` DESC LIMIT ?',
+    [IMAGE_PREWARM_LIMIT]
+  )
+  const posts = rows as Post[]
+  for (let i = 0; i < posts.length; i += 64) {
+    const chunk = posts.slice(i, i + 64)
+    await Promise.all(
+      chunk.map(async (post) => {
+        const ext = extFromMime(post.mime)
+        if (ext) await writeImageCache(`${post.id}.${ext}`, post.imgdata)
+      })
+    )
+  }
+}
+
 router.get('/initialize', async (c: AppContext) => {
   try {
     await dbInitialize()
     await clearImageCache()
+    await warmImageCache()
     return c.text('OK')
   } catch (e) {
     console.error(e)
