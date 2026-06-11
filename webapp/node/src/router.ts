@@ -261,7 +261,7 @@ router.get('/posts', async (c: AppContext) => {
 
 router.get('/posts/:id', async (c: AppContext) => {
   const id = c.req.param('id')
-  const [postRows] = await db.query<RowDataPacket[]>('SELECT * FROM `posts` WHERE `id` = ?', [id])
+  const [postRows] = await db.query<RowDataPacket[]>('SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` WHERE `id` = ?', [id])
   const posts = postRows as Post[]
   const enriched = await hydratePosts(posts, { allComments: true })
   const post = enriched[0]
