@@ -1,0 +1,21 @@
+DIGEST_TEXT	COUNT_STAR	total_sec	avg_sec	SUM_ROWS_SENT	SUM_ROWS_EXAMINED
+SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC LIMIT ?	2481	39.889	0.0161	6440	248117044
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `post_id` = ?	2680	14.504	0.0054	2680	268011550
+SELECT * FROM `users` WHERE `id` = ?	11087	1.214	0.0001	11087	11087
+SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC	199	1.007	0.0051	1861	19902822
+SELECT * FROM `posts` WHERE `id` = ?	1833	0.845	0.0005	1833	1833
+SELECT `id` , `user_id` , `body` , `created_at` , `mime` FROM `posts` ORDER BY `created_at` DESC	91	0.590	0.0065	910334	1820668
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `post_id` IN (...)	26	0.175	0.0067	26	2600110
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `user_id` = ?	26	0.162	0.0062	26	2600110
+INSERT INTO `posts` ( `user_id` , `mime` , `imgdata` , `body` ) VALUES (...)	7	0.108	0.0155	0	0
+SELECT `id` , `user_id` , `body` , `mime` , `created_at` FROM `posts` WHERE `created_at` <= ? ORDER BY `created_at` DESC	10	0.070	0.0070	99861	199903
+SELECT `id` , `user_id` , `body` , `mime` , `created_at` FROM `posts` WHERE `user_id` = ? ORDER BY `created_at` DESC	26	0.053	0.0020	294	260392
+INSERT INTO `comments` ( `post_id` , `user_id` , `comment` ) VALUES (...)	9	0.041	0.0045	0	0
+INSERT INTO `users` ( `account_name` , `passhash` ) VALUES (...)	8	0.037	0.0046	0	0
+SELECT `id` FROM `posts` WHERE `user_id` = ?	26	0.021	0.0008	294	260102
+SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = ?	90	0.015	0.0002	79	79
+DELETE FROM `posts` WHERE `id` > ?	1	0.014	0.0144	0	7
+UPDATE `users` SET `del_flg` = ?	1	0.009	0.0090	0	1000
+DELETE FROM `users` WHERE `id` > ?	1	0.007	0.0072	0	7
+DELETE FROM `comments` WHERE `id` > ?	1	0.007	0.0068	0	8
+UPDATE `users` SET `del_flg` = ? WHERE `id` % ? = ?	1	0.007	0.0066	0	1000

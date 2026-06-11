@@ -19,17 +19,19 @@ end
 
 
 puts "imgディレクトリに画像を展開"
-`curl -L -O https://github.com/catatsuy/private-isu/releases/download/img/img.zip`
-`unzip img.zip`
+unless Dir.exist?('img')
+  `curl -L -O https://github.com/catatsuy/private-isu/releases/download/img/img.zip` unless File.exist?('img.zip')
+  `unzip img.zip`
+end
 
 kaomoji = File.read('kaomoji.txt').strip().split("\n")
 
 db = Mysql2::Client.new(
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: '',
-  database: 'isuconp',
+  host: ENV.fetch('ISUCONP_DB_HOST', 'localhost'),
+  port: ENV.fetch('ISUCONP_DB_PORT', '3306').to_i,
+  username: ENV.fetch('ISUCONP_DB_USER', 'root'),
+  password: ENV.fetch('ISUCONP_DB_PASSWORD', ''),
+  database: ENV.fetch('ISUCONP_DB_NAME', 'isuconp'),
   encoding: 'utf8mb4',
   reconnect: true,
 )
@@ -120,4 +122,11 @@ query = db.prepare('INSERT INTO comments (`id`,`post_id`,`user_id`,`comment`,`cr
 end
 
 puts "mysqldumpを出力して圧縮"
-`mysqldump -u root -h localhost --hex-blob --add-drop-database --databases isuconp | bzip2 > dump.sql.bz2`
+dump_host = ENV.fetch('ISUCONP_DB_HOST', 'localhost')
+dump_port = ENV.fetch('ISUCONP_DB_PORT', '3306')
+dump_user = ENV.fetch('ISUCONP_DB_USER', 'root')
+dump_password = ENV.fetch('ISUCONP_DB_PASSWORD', '')
+dump_database = ENV.fetch('ISUCONP_DB_NAME', 'isuconp')
+
+password_arg = dump_password.empty? ? '' : " -p#{dump_password}"
+`mysqldump -u #{dump_user}#{password_arg} -h #{dump_host} -P #{dump_port} --hex-blob --add-drop-database --databases #{dump_database} | bzip2 > dump.sql.bz2`

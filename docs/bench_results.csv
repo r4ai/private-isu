@@ -1,2 +1,21 @@
-timestamp,score,success,fail,messages,pass
-2026-06-11T01:07:13+09:00,3130,2995,0,,True
+DIGEST_TEXT	COUNT_STAR	total_sec	avg_sec	SUM_ROWS_SENT	SUM_ROWS_EXAMINED
+SELECT * FROM `posts` WHERE `id` = ?	6412	4.244	0.0007	6412	6412
+SELECT * FROM `users` WHERE `id` = ?	32841	3.852	0.0001	32841	32841
+SELECT `id` , `user_id` , `body` , `created_at` , `mime` FROM `posts` ORDER BY `created_at` DESC	378	3.151	0.0083	3787453	7574906
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `post_id` = ?	11139	1.855	0.0002	11139	55585
+SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC LIMIT ?	10480	1.750	0.0002	14921	14921
+INSERT INTO `posts` ( `user_id` , `mime` , `imgdata` , `body` ) VALUES (...)	41	1.071	0.0261	0	0
+SELECT `id` , `user_id` , `body` , `mime` , `created_at` FROM `posts` WHERE `created_at` <= ? ORDER BY `created_at` DESC	79	0.828	0.0105	784156	1575963
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `user_id` = ?	111	0.780	0.0070	111	11102727
+INSERT INTO `comments` ( `post_id` , `user_id` , `comment` ) VALUES (...)	52	0.446	0.0086	0	0
+INSERT INTO `users` ( `account_name` , `passhash` ) VALUES (...)	47	0.390	0.0083	0	0
+SELECT `id` , `user_id` , `body` , `mime` , `created_at` FROM `posts` WHERE `user_id` = ? ORDER BY `created_at` DESC	111	0.294	0.0026	1118	1113283
+SELECT `id` FROM `posts` WHERE `user_id` = ?	111	0.148	0.0013	1118	1112183
+SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC	659	0.131	0.0002	6193	6193
+SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = ?	394	0.071	0.0002	360	360
+SELECT `DIGEST_TEXT` , `COUNT_STAR` , `ROUND` ( `SUM_TIMER_WAIT` / ?, ... ) AS `total_sec` , `ROUND` ( `AVG_TIMER_WAIT` / ?, ... ) AS `avg_sec` , `SUM_ROWS_SENT` , `SUM_ROWS_EXAMINED` FROM `performance_schema` . `events_statements_summary_by_digest` WHERE SCHEMA_NAME = ? ORDER BY `SUM_TIMER_WAIT` DESC LIMIT ?	1	0.034	0.0341	20	43
+SELECT COUNT ( * ) AS `count` FROM `comments` WHERE `post_id` IN (...)	111	0.032	0.0003	111	11084
+DELETE FROM `users` WHERE `id` > ?	1	0.021	0.0208	0	0
+UPDATE `users` SET `del_flg` = ?	1	0.020	0.0202	0	1000
+UPDATE `users` SET `del_flg` = ? WHERE `id` % ? = ?	1	0.015	0.0148	0	1000
+SELECT * FROM `users` WHERE `account_name` = ?	47	0.008	0.0002	47	47
