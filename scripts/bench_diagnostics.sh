@@ -30,9 +30,9 @@ fi
     ts="$(date --iso-8601=seconds)"
     docker stats --no-stream \
       --format '{{.Name}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}},{{.NetIO}},{{.BlockIO}},{{.PIDs}}' \
-      "${CONTAINERS[@]}" | while IFS= read -r line; do
+      "${CONTAINERS[@]}" 2>/dev/null | while IFS= read -r line; do
         printf '%s,%s\n' "$ts" "$line"
-      done >> "$STATS_PATH"
+      done >> "$STATS_PATH" || true
     sleep "$INTERVAL"
   done
 ) &

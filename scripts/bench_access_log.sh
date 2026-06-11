@@ -10,7 +10,7 @@ SUMMARY_CSV_PATH="${SUMMARY_CSV_PATH:-"$ROOT_DIR/docs/bench_access_summary.csv"}
 mkdir -p "$ROOT_DIR/docs"
 
 cd "$ROOT_DIR/webapp"
-ISUCONP_ACCESS_LOG=1 docker compose up -d --build app nginx
+ISUCONP_ACCESS_LOG=1 docker compose up -d --build mysql app nginx
 docker compose exec -T nginx nginx -s reload
 
 cd "$ROOT_DIR/benchmarker"
