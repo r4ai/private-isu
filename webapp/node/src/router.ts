@@ -10,7 +10,7 @@ import { type AppContext, type Comment, type CountRow, type ParsedBody, type Pos
 
 export const router = new Hono<{ Variables: Variables }>()
 
-type CommentCountRow = CountRow & { post_id: number }
+type CommentRow = Comment & { comment_count?: number }
 const IMAGE_CACHE_DIR = '/home/public/image'
 const IMAGE_PREWARM_LIMIT = Number(process.env.ISUCONP_IMAGE_PREWARM_LIMIT) || 3000
 
@@ -18,19 +18,15 @@ async function hydratePosts(posts: Post[], options: { allComments?: boolean } = 
   if (posts.length === 0) return []
 
   const postIds = posts.map((post) => post.id)
-  const [countRows] = await db.query<RowDataPacket[]>(
-    'SELECT `post_id`, COUNT(*) AS `count` FROM `comments` WHERE `post_id` IN (?) GROUP BY `post_id`',
-    [postIds]
-  )
   const commentCounts = new Map<number, number>()
-  for (const row of countRows as CommentCountRow[]) {
-    commentCounts.set(row.post_id, row.count)
-  }
 
   const commentQuery = options.allComments
     ? 'SELECT * FROM `comments` WHERE `post_id` IN (?) ORDER BY `post_id`, `created_at` DESC'
-    : `SELECT id, post_id, user_id, comment, created_at FROM (
-        SELECT c.*, ROW_NUMBER() OVER (PARTITION BY c.post_id ORDER BY c.created_at DESC) AS rn
+    : `SELECT id, post_id, user_id, comment, created_at, comment_count FROM (
+        SELECT
+          c.*,
+          COUNT(*) OVER (PARTITION BY c.post_id) AS comment_count,
+          ROW_NUMBER() OVER (PARTITION BY c.post_id ORDER BY c.created_at DESC) AS rn
         FROM comments c
         WHERE c.post_id IN (?)
       ) recent_comments
@@ -39,7 +35,12 @@ async function hydratePosts(posts: Post[], options: { allComments?: boolean } = 
   const [commentRows] = await db.query<RowDataPacket[]>(commentQuery, [postIds])
   const commentsByPostId = new Map<number, Comment[]>()
   const userIds = new Set(posts.map((post) => post.user_id))
-  for (const comment of commentRows as Comment[]) {
+  for (const comment of commentRows as CommentRow[]) {
+    if (options.allComments) {
+      commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1)
+    } else if (comment.comment_count !== undefined) {
+      commentCounts.set(comment.post_id, comment.comment_count)
+    }
     if (!options.allComments && (commentsByPostId.get(comment.post_id)?.length ?? 0) >= 3) {
       continue
     }
