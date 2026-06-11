@@ -78,6 +78,11 @@ export async function destroySession(c: AppContext): Promise<void> {
 }
 
 export async function sessionMiddleware(c: AppContext, next: Next): Promise<void> {
+  if (c.req.path === '/initialize' || c.req.path.startsWith('/image/')) {
+    await next()
+    return
+  }
+
   const existingSid = getCookie(c, SESSION_COOKIE_NAME)
   const sessionFromStore = existingSid ? await getSessionFromStore(existingSid) : undefined
   let session = sessionFromStore
